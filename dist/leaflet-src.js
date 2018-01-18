@@ -1,5 +1,5 @@
 /* @preserve
- * Leaflet 1.2.0+master.cf640d4, a JS library for interactive maps. http://leafletjs.com
+ * Leaflet 1.2.0+build.b26daef, a JS library for interactive maps. http://leafletjs.com
  * (c) 2010-2017 Vladimir Agafonkin, (c) 2010-2011 CloudMade
  */
 
@@ -9,7 +9,7 @@
 	(factory((global.L = {})));
 }(this, (function (exports) { 'use strict';
 
-var version = "1.2.0+master.cf640d4";
+var version = "1.2.0+build.b26daef";
 
 /*
  * @namespace Util
@@ -5709,7 +5709,8 @@ var Draggable = Evented.extend({
 		// @option clickTolerance: Number = 3
 		// The max number of pixels a user can shift the mouse pointer during a click
 		// for it to be considered a valid click (as opposed to a mouse drag).
-		clickTolerance: 3
+		clickTolerance: 3,
+		mapContainer: undefined
 	},
 
 	// @constructor L.Draggable(el: HTMLElement, dragHandle?: HTMLElement, preventOutline?: Boolean, options?: Draggable options)
@@ -5779,7 +5780,7 @@ var Draggable = Evented.extend({
 
 		var first = e.touches ? e.touches[0] : e;
 
-		this._startPoint = getMousePosition(first, this._dragStartTarget, true);
+		this._startPoint = getMousePosition(first, this.options.mapContainer, true);
 
 		on(document, MOVE[e.type], this._onMove, this);
 		on(document, END[e.type], this._onUp, this);
@@ -5799,7 +5800,7 @@ var Draggable = Evented.extend({
 		}
 
 		var first = (e.touches && e.touches.length === 1 ? e.touches[0] : e),
-		    newPoint = getMousePosition(first, this._dragStartTarget, true),
+		    newPoint = getMousePosition(first, this.options.mapContainer, true),
 		    offset = newPoint.subtract(this._startPoint);
 
 		if (!offset.x && !offset.y) { return; }
@@ -7136,9 +7137,12 @@ var MarkerDrag = Handler.extend({
 
 	addHooks: function () {
 		var icon = this._marker._icon;
+		var mapContainer = this._marker._map._container;
 
 		if (!this._draggable) {
-			this._draggable = new Draggable(icon, icon, true);
+			this._draggable = new Draggable(icon, icon, true, {
+				mapContainer: mapContainer
+			});
 		}
 
 		this._draggable.on({
@@ -13008,7 +13012,9 @@ var Drag = Handler.extend({
 		if (!this._draggable) {
 			var map = this._map;
 
-			this._draggable = new Draggable(map._mapPane, map._container);
+			this._draggable = new Draggable(map._mapPane, map._container, false, {
+				mapContainer: map._container
+			});
 
 			this._draggable.on({
 				dragstart: this._onDragStart,
